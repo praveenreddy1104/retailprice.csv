@@ -1,0 +1,93 @@
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from scipy.optimize import minimize
+import os
+
+# Step 1: Load the Dataset
+file_path = 'retail_data.csv'
+if not os.path.exists(file_path):
+    print(f"'{file_path}' not found. Creating a dummy file for demonstration.")
+    dummy_data = {
+        'Price': [25, 30, 35, 40, 45],
+        'Sales': [100, 90, 80, 70, 60],
+        'COGS': [15, 18, 20, 22, 25],
+        'Market_Demand': [120, 110, 100, 90, 80]
+    }
+    dummy_df = pd.DataFrame(dummy_data)
+    dummy_df.to_csv(file_path, index=False)
+    print(f"Dummy '{file_path}' created.")
+
+try:
+    data = pd.read_csv(file_path)
+    print("Dataset loaded successfully.")
+except FileNotFoundError:
+    print(f"Error: '{file_path}' not found after attempted creation. Please check file permissions.")
+    exit()
+
+
+# Step 2: Data Cleaning
+data.dropna(inplace=True)  # Remove missing values
+
+# Step 3: Exploratory Data Analysis
+plt.figure(figsize=(8, 5))
+sns.scatterplot(x='Price', y='Sales', data=data)
+plt.title('Price vs Sales')
+plt.xlabel('Price')
+plt.ylabel('Sales')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# Step 4: Feature Engineering
+data['Profit'] = data['Sales'] * (data['Price'] - data['COGS'])
+
+# Step 5: Model Training
+X = data[['Price', 'COGS', 'Market_Demand']]
+y = data['Sales']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Step 6: Optimization Function
+COGS_value = 20
+Market_Demand_value = 100
+
+def profit_function(price_array):
+    price = price_array[0]
+    input_features = np.array([[price, COGS_value, Market_Demand_value]])
+    predicted_sales = model.predict(input_features)
+    profit = predicted_sales[0] * (price - COGS_value)
+    return -profit  # Minimize negative profit to maximize profit
+
+# Optimize price
+result = minimize(profit_function, x0=[30], bounds=[(10, 100)])
+optimal_price = result.x[0]
+
+# Step 7: Output Results
+predicted_sales = model.predict(np.array([[optimal_price, COGS_value, Market_Demand_value]]))
+
+print(f'\nOptimal Price: ${optimal_price:.2f}')
+print(f'Predicted Sales at Optimal Price: {predicted_sales[0]:.2f}')
+
+  Dataset loaded successfully.
+
+
+Optimal Price: $100.00
+Predicted Sales at Optimal Price: 54.00
+/usr/local/lib/python3.11/dist-packages/sklearn/utils/validation.py:2739: UserWarning: X does not have valid feature names, but LinearRegression was fitted with feature names
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/sklearn/utils/validation.py:2739: UserWarning: X does not have valid feature names, but LinearRegression was fitted with feature names
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/sklearn/utils/validation.py:2739: UserWarning: X does not have valid feature names, but LinearRegression was fitted with feature names
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/sklearn/utils/validation.py:2739: UserWarning: X does not have valid feature names, but LinearRegression was fitted with feature names
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/sklearn/utils/validation.py:2739: UserWarning: X does not have valid feature names, but LinearRegression was fitted with feature names
+  warnings.warn(
